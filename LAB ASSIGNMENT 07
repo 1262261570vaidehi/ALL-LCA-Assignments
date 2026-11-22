@@ -1,0 +1,83 @@
+#include <stdio.h>
+
+#define MAX_SENSORS 100
+
+struct Sensor {
+    int id;
+    char type[50];
+    double value;
+    double minLimit;
+    double maxLimit;
+};
+
+int main(void)
+{
+    struct Sensor sensors[MAX_SENSORS];
+    int count, warnings = 0, anomalies = 0;
+
+    printf("Enter the number of sensors: ");
+    if (scanf("%d", &count) != 1 || count < 1 || count > MAX_SENSORS) {
+        printf("Enter a sensor count from 1 to %d.\n", MAX_SENSORS);
+        return 1;
+    }
+
+    for (int i = 0; i < count; i++) {
+        printf("\nEnter details for sensor %d\n", i + 1);
+
+        printf("Sensor ID: ");
+        if (scanf("%d", &sensors[i].id) != 1) {
+            printf("Invalid sensor ID.\n");
+            return 1;
+        }
+
+        printf("Sensor type: ");
+        if (scanf(" %49[^\n]", sensors[i].type) != 1) {
+            printf("Invalid sensor type.\n");
+            return 1;
+        }
+
+        printf("Enter measured value, minimum limit, and maximum limit: ");
+        if (scanf("%lf %lf %lf", &sensors[i].value,
+                  &sensors[i].minLimit, &sensors[i].maxLimit) != 3) {
+            printf("Please enter three numbers.\n");
+            return 1;
+        }
+
+        if (sensors[i].minLimit > sensors[i].maxLimit) {
+            printf("Minimum limit must be less than or equal to maximum limit.\n");
+            return 1;
+        }
+    }
+
+    printf("\nFinal Sensor Report\n");
+    printf("%-8s %-20s %10s %10s %10s  %s\n",
+           "ID", "Type", "Value", "Min", "Max", "Status");
+
+    for (int i = 0; i < count; i++) {
+        struct Sensor sensor = sensors[i];
+        double tolerance = 0.10 * (sensor.maxLimit - sensor.minLimit);
+        const char *status;
+
+        if (sensor.value >= sensor.minLimit &&
+            sensor.value <= sensor.maxLimit) {
+            status = "Normal";
+        } else if (sensor.value >= sensor.minLimit - tolerance &&
+                   sensor.value <= sensor.maxLimit + tolerance) {
+            status = "Warning";
+            warnings++;
+        } else {
+            status = "Anomaly";
+            anomalies++;
+        }
+
+        printf("%-8d %-20s %10.2f %10.2f %10.2f  %s\n",
+               sensor.id, sensor.type, sensor.value,
+               sensor.minLimit, sensor.maxLimit, status);
+    }
+
+    printf("\nWarnings: %d\n", warnings);
+    printf("Anomalies: %d\n", anomalies);
+    printf("Total abnormal sensors: %d\n", warnings + anomalies);
+
+    return 0;
+}
